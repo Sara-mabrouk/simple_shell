@@ -1,10 +1,10 @@
-#include "main.h"
+#include "shell.h"
 
 /**
- * clr_info - initializes info_t struct
+ * clear_info - initializes info_t struct
  * @info: struct address
  */
-void clr_info(info_t *info)
+void clear_info(info_t *info)
 {
 	info->arg = NULL;
 	info->argv = NULL;
@@ -15,16 +15,16 @@ void clr_info(info_t *info)
 /**
  * set_info - initializes info_t struct
  * @info: struct address
- * @arg_v: argument vector
+ * @av: argument vector
  */
-void set_info(info_t *info, char **arg_v)
+void set_info(info_t *info, char **av)
 {
 	int i = 0;
 
-	info->fname = arg_v[0];
+	info->fname = av[0];
 	if (info->arg)
 	{
-		info->argv = tokenizer(info->arg, " \t");
+		info->argv = strtow(info->arg, " \t");
 		if (!info->argv)
 		{
 
@@ -39,36 +39,36 @@ void set_info(info_t *info, char **arg_v)
 			;
 		info->argc = i;
 
-		resolve_alias(info);
-		resolve_vars(info);
+		replace_alias(info);
+		replace_vars(info);
 	}
 }
 
 /**
  * free_info - frees info_t struct fields
  * @info: struct address
- * @tr_ue: true if freeing all fields
+ * @all: true if freeing all fields
  */
-void free_info(info_t *info, int tr_ue)
+void free_info(info_t *info, int all)
 {
-	free_strarr(info->argv);
+	ffree(info->argv);
 	info->argv = NULL;
 	info->path = NULL;
-	if (tr_ue)
+	if (all)
 	{
-		if (!info->command_buffer)
+		if (!info->cmd_buf)
 			free(info->arg);
 		if (info->env)
-			_freenodes(&(info->env));
+			free_list(&(info->env));
 		if (info->history)
-			_freenodes(&(info->history));
+			free_list(&(info->history));
 		if (info->alias)
-			_freenodes(&(info->alias));
-		free_strarr(info->environ);
+			free_list(&(info->alias));
+		ffree(info->environ);
 			info->environ = NULL;
-		safe_free((void **)info->command_buffer);
-		if (info->read_file_descriptor > 2)
-			close(info->read_file_descriptor);
-		_putchar(BUFFER_FLUSH);
+		bfree((void **)info->cmd_buf);
+		if (info->readfd > 2)
+			close(info->readfd);
+		_putchar(BUF_FLUSH);
 	}
 }

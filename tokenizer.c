@@ -1,95 +1,94 @@
-#include "main.h"
+#include "shell.h"
 
 /**
- * **tokenizer - splits a string into words. Repeat delimiters are ignored
+ * **strtow - splits a string into words. Repeat delimiters are ignored
  * @str: the input string
- * @delim: the delimeter string
+ * @d: the delimeter string
  * Return: a pointer to an array of strings, or NULL on failure
  */
 
-char **tokenizer(char *str, char *delim)
+char **strtow(char *str, char *d)
 {
-	int i, j, k, m, num = 0;
-	char **arrstr;
+	int i, j, k, m, numwords = 0;
+	char **s;
 
 	if (str == NULL || str[0] == 0)
 		return (NULL);
-	if (!delim)
-		delim = " ";
+	if (!d)
+		d = " ";
 	for (i = 0; str[i] != '\0'; i++)
-		if (!check_delim(str[i], delim) &&
-		(check_delim(str[i + 1], delim) || !str[i + 1]))
-			num++;
+		if (!is_delim(str[i], d) && (is_delim(str[i + 1], d) || !str[i + 1]))
+			numwords++;
 
-	if (num == 0)
+	if (numwords == 0)
 		return (NULL);
-	arrstr = malloc((1 + num) * sizeof(char *));
-	if (!arrstr)
+	s = malloc((1 + numwords) * sizeof(char *));
+	if (!s)
 		return (NULL);
-	for (i = 0, j = 0; j < num; j++)
+	for (i = 0, j = 0; j < numwords; j++)
 	{
-		while (check_delim(str[i], delim))
+		while (is_delim(str[i], d))
 			i++;
 		k = 0;
-		while (!check_delim(str[i + k], delim) && str[i + k])
+		while (!is_delim(str[i + k], d) && str[i + k])
 			k++;
-		arrstr[j] = malloc((k + 1) * sizeof(char));
-		if (!arrstr[j])
+		s[j] = malloc((k + 1) * sizeof(char));
+		if (!s[j])
 		{
 			for (k = 0; k < j; k++)
-				free(arrstr[k]);
-			free(arrstr);
+				free(s[k]);
+			free(s);
 			return (NULL);
 		}
 		for (m = 0; m < k; m++)
-			arrstr[j][m] = str[i++];
-		arrstr[j][m] = 0;
+			s[j][m] = str[i++];
+		s[j][m] = 0;
 	}
-	arrstr[j] = NULL;
-	return (arrstr);
+	s[j] = NULL;
+	return (s);
 }
 
 /**
- * **str_tokenizer - splits a string into words
+ * **strtow2 - splits a string into words
  * @str: the input string
- * @delim: the delimeter
- * Return: a pointer to an array of strings
+ * @d: the delimeter
+ * Return: a pointer to an array of strings, or NULL on failure
  */
-char **str_tokenizer(char *str, char delim)
+char **strtow2(char *str, char d)
 {
-	int i, j, k, m, num = 0;
-	char **arrstr;
+	int i, j, k, m, numwords = 0;
+	char **s;
 
 	if (str == NULL || str[0] == 0)
 		return (NULL);
 	for (i = 0; str[i] != '\0'; i++)
-		if ((str[i] != delim && str[i + 1] == delim) ||
-		    (str[i] != delim && !str[i + 1]) || str[i + 1] == delim)
-			num++;
-	if (num == 0)
+		if ((str[i] != d && str[i + 1] == d) ||
+		    (str[i] != d && !str[i + 1]) || str[i + 1] == d)
+			numwords++;
+	if (numwords == 0)
 		return (NULL);
-	arrstr = malloc((1 + num) * sizeof(char *));
-	if (!arrstr)
+	s = malloc((1 + numwords) * sizeof(char *));
+	if (!s)
 		return (NULL);
-	for (i = 0, j = 0; j < num; j++)
+	for (i = 0, j = 0; j < numwords; j++)
 	{
-		while (str[i] == delim && str[i] != delim)
+		while (str[i] == d && str[i] != d)
 			i++;
 		k = 0;
-		while (str[i + k] != delim && str[i + k] && str[i + k] != delim)
+		while (str[i + k] != d && str[i + k] && str[i + k] != d)
 			k++;
-		arrstr[j] = malloc((k + 1) * sizeof(char));
-		if (!arrstr[j])
+		s[j] = malloc((k + 1) * sizeof(char));
+		if (!s[j])
 		{
 			for (k = 0; k < j; k++)
-				free(arrstr[k]);
-			free(arrstr);
+				free(s[k]);
+			free(s);
 			return (NULL);
 		}
 		for (m = 0; m < k; m++)
-			arrstr[j][m] = str[i++];
-		arrstr[j][m] = 0;
+			s[j][m] = str[i++];
+		s[j][m] = 0;
 	}
-	arrstr[j] = NULL;
-	return (arrstr);
+	s[j] = NULL;
+	return (s);
 }
