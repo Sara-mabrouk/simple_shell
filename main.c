@@ -1,108 +1,42 @@
 #include "main.h"
-
 /**
- * run_interactive_mode - runs interactive mode
- * @argc: number of arguments passed to shell
- * @argv: string holding arguments
- * @envp: environment variable
+ * main - checks code
+ * @arg_c: counter
+ * @arg_v: A pointer to arg vector
  *
- * Return: nothing
+ * Return: 0
  */
-void run_interactive_mode(int argc, char **argv, char **envp)
+int main(int arg_c, char **arg_v)
 {
-	char *prompt = "$";
-	char *input = NULL, *input_cpy = NULL;
-	const char *delim = " \n";
-	ssize_t nchars_read;
-	char **env = envp;
-	size_t n = 0;
+	info_t info[] = { INFO_INIT};
+	int file_descriptor = 2;
 
-	while (1)
+	asm ("mov %1, %0\n\t"
+		"add $3, %0"
+		: "=r" (file_descriptor)
+		: "r" (file_descriptor));
+	if (arg_c == 2)
 	{
-		_puts(prompt);
-		nchars_read = _getline(&input, &n, stdin);
-		if (nchars_read == -1)
+		file_descriptor = open(arg_v[1], O_RDONLY);
+		if (file_descriptor == -1)
 		{
-			exit(1);
-		}
-		input_cpy = _strdup(input);
-		argv = parse_input(input, delim, &argc);
-
-		argc = num_token(input_cpy, delim);
-		check_argv(argv, env, input, input_cpy);
-		if (_strcmp(argv[0], "env") != 0)
-		{
-			execute(argv, env);
-		}
-		free(input_cpy);
-		free(input);
-		cleanup(argv);
-	}
-}
-
-/**
- * run_non_interactive_mode - run non-interactive mode
- * @argc: number of arguments passed to shell
- * @argv: string holding arguments
- * @envp: environment variable
- *
- * Return: nothing
- */
-void run_non_interactive_mode(int argc, char **argv, char **envp)
-{
-	char *input = NULL, *input_cpy = NULL;
-	const char *delim = " \n";
-	ssize_t nchars_read;
-	char **env = envp;
-	size_t n = 0;
-
-	nchars_read = _getline(&input, &n, stdin);
-	while (nchars_read != -1)
-	{
-		if (*input != '\n')
-		{
-			input[nchars_read - 1] = '\0';
-			input_cpy = allocate(nchars_read);
-			_strcpy(input_cpy, input);
-			if (has_space(input) == 1)
+			if (errno == EACCES)
+				exit(126);
+			if (errno == ENOENT)
 			{
-				free(input_cpy);
-				exit(0);
+				error_str(arg_v[0]);
+				error_str(": 0: Not accessible ");
+				error_str(arg_v[1]);
+				error_char('\n');
+				error_char(BUFFER_FLUSH);
+				exit(127);
 			}
-			argv = parse_input(input, delim, &argc);
-			argc = num_token(input_cpy, delim);
-			check_argv(argv, env, input, input_cpy);
-			if (_strcmp(argv[0], "env") != 0)
-			{
-				execute(argv, env);
-			}
-			free(input_cpy);
-			free(input);
-			cleanup(argv);
-			nchars_read = _getline(&input, &n, stdin);
+			return (EXIT_FAILURE);
 		}
-		else
-			nchars_read = _getline(&input, &n, stdin);
+		info->read_file_descriptor = file_descriptor;
 	}
-}
-
-/**
- * main - simple shell
- * @argc: number of arguments passed to main function
- * @argv: double pointer to arguments in string format
- * @envp: environment variable
- *
- * Return: 0 (success)
- */
-int main(int argc, char **argv, char **envp)
-{
-	if (isatty(STDIN_FILENO))
-	{
-		run_interactive_mode(argc, argv, envp);
-	}
-	else
-	{
-		run_non_interactive_mode(argc, argv, envp);
-	}
-	return (0);
+	env_list(info);
+	_readhistory(info);
+	shell_loop(info, arg_v);
+	return (EXIT_SUCCESS);
 }
